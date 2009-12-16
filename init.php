@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: init.php 7 2009-02-01 01:33:43Z Vyrus $ */
-    
     $cur_dir = dirname(__FILE__);
     require_once $cur_dir . '/lib/Init.php';
     require_once $cur_dir . '/lib/Init/Exception.php';

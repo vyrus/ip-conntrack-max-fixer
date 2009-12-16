@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: ErrorReporter.php 25 2009-07-29 20:42:30Z leon4ik.ru $ */ 
-    
     class ErrorReporter { 
         /**
         * @var const

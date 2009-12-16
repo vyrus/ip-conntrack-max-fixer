@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-
     class Network {
         /**
         * @var IO_Selector

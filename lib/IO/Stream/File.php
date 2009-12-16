@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-    
     class IO_Stream_File extends IO_Stream_Abstract {
         /**
         * @var array

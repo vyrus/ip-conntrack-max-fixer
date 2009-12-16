@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-    
     /**
     * @todo Rename to IO_Stream_Buffered_Abstract?
     */

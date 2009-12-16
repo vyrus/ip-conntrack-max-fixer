@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-    
     class IO_Stream_Buffered_Socket extends IO_Stream_Buffered {
         /**
         * @var array

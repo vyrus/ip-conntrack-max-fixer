@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-    
     class IO_Buffer {
         /**
         * @var string

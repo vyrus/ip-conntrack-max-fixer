@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: $ */
-    
     /**
     * @todo Не работает:
     * $flags = BitFlags::create();

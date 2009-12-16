@@ -1,7 +1,5 @@
 <?php
 
-    /* $Id: Init.php 15 2009-04-03 23:25:50Z Vyrus $ */
-    
     class Init {
         static $check_if_const_defined = true;
         
