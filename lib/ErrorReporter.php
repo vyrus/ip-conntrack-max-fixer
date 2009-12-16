@@ -1,8 +1,7 @@
 <?php
 
-    /* $Id: error_reporter.php 7 2009-02-01 01:33:43Z Vyrus $ */ 
+    /* $Id: ErrorReporter.php 25 2009-07-29 20:42:30Z leon4ik.ru $ */ 
     
-    /* TODO(features): записывать страничку с инфой об ошибке в лог (Zend_Log) и выводить user-friendly сообщение. */
     class ErrorReporter { 
         /**
         * @var const
@@ -60,7 +59,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title><?= $header ?></title>
+<title><?php echo $header ?></title>
 <style type="text/css" media="screen">
     html {margin:0;padding:0;background:#BEC6C6;}
     body {width:50em; margin:2em auto;border:4px solid #eee; padding:0.5em 1em 1.5em; font-size:14px; font-family: Verdana, sans-serif; background-color:#fffafa}
@@ -76,10 +75,10 @@
 </style>
 </head>
 <body>
-<h1><?= $header ?></h1>
-<p><?php echo ($exception ? $exception . ' thrown' : 'An error encountered'); ?> in <span class="path"><?= $file ?></span> on line <span class="line"><?= $line ?>.</span></p>
+<h1><?php echo $header ?></h1>
+<p><?php echo ($exception ? $exception . ' thrown' : 'An error encountered'); ?> in <span class="path"><?php echo $file ?></span> on line <span class="line"><?php echo $line ?>.</span></p>
 <h2>Error Message</h2>
-<p><?= $message ?>.</p>
+<p><?php echo $message ?>.</p>
 <?php 
 
 $show_backtrace = true;
@@ -92,14 +91,14 @@ $trace = array_slice($trace, $skip_backtrace);
 <?php    foreach ( $trace as $line ): ?>
 <?php     if ( isset($line['function']) && $line['function'] == 'trigger_error' ) continue; ?>
     <li>
-        <span class="path"><?= isset($line['file']) ? $line['file'] .':' : 'PHP inner process:' ?></span>
+        <span class="path"><?php echo isset($line['file']) ? $line['file'] .':' : 'PHP inner process:' ?></span>
         <div class="code-block">
         <?php
             echo '<span class="line">' . ( isset($line['line']) ? $line['line'] . '.' : '') . '</span>';
 
             $function = isset($line['function']) ? $line['function'] : '';
 
-            $code = '<?php' . (isset($line['class']) ? $line['class'] : '') .
+            $code = '<?php ' . (isset($line['class']) ? $line['class'] : '') .
                 (isset($line['type']) ? $line['type'] : '') . $function;
 
             if ( isset($line['args']) )
@@ -118,13 +117,19 @@ $trace = array_slice($trace, $skip_backtrace);
                         $args[] = $arg;
                 }
 
-                $code.= '(' . implode(', ', $args) . '); ?>';
+                $code .= '(' . implode(', ', $args) . ');';
             }
+            else
+            {
+                $code .= '();';
+            }
+            
+            $code .= ' ?>';
 
             $code = wordwrap($code, 75, self::CR, true);
             $code = highlight_string($code, true);
-            $code = str_replace(array('&lt;?php','?&gt;'),'',$code);
-
+            $code = str_replace(array('&lt;?php&nbsp;', '?&gt;'), '', $code);
+                        
             echo $code;
     ?>
     </div></li>

@@ -36,7 +36,7 @@
         */
         protected $_listener;
         
-        public function create() {
+        public static function create() {
             return new self();
         }
         
@@ -108,7 +108,7 @@
             
             $success = Telnet_Listener_Interface::SUCCESS;
             
-            if ($success === $this->_listener->onPromt($this, $data))
+            if ($success === $this->_listener->onTelnetPromt($this, $data))
             {
                 $length = strlen($data);
                 $this->_read_buffer->release($length);

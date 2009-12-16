@@ -16,8 +16,8 @@
         */
         protected $write_buffer;
         
-        public static function create($type, array $params = array()) {
-            return self::factory($type, $params, __CLASS__);
+        public static function create($type, $options = null) {
+            return self::factory($type, $options, __CLASS__);
         }
         
         public function init() {
