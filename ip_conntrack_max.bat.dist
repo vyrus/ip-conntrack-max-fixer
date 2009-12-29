@@ -1,0 +1,4 @@
+@echo off
+
+set PHPBIN="C:\path\to\php.exe"
+%PHPBIN% "C:\path\to\ip_conntrack_max.php" %*

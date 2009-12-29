@@ -2,20 +2,19 @@
 
     require_once 'init.php';
 
-    header('Content-Type: text/plain');
-    
     $net = Network::create();
+    $telnet = Telnet::create();
     
     $fixer = IpConntrackMaxFixer::create();
-    $fixer->setNetwork($net);
+    $fixer->setNetwork($net)
+          ->setTelnet($telnet)
+          ->setHost('192.168.1.1')
+          ->setLogin('admin')
+          ->setPasswd('admin')
+          ->setConntrackMax(4096);
     
-    $telnet = Telnet::create();
-    $telnet->setListener($fixer);
+    $fixer->fixIt();
     
-    $telnet->connect('192.168.1.1');
-    
-    while(true) {
-        $net->dispatchStreams();
-    }
+    exit();
 
 ?>

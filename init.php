@@ -12,7 +12,7 @@
         
     Init::setIncludePath( array(APP, LIB, THIRD_PARTY) );
     Init::setErrorReporting(E_ALL | E_STRICT );
-    Init::setupErrorHandler();
+    //Init::setupErrorHandler();
 
     Init::define('CR',   "\r");
     Init::define('LF',   "\n");

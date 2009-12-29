@@ -69,14 +69,14 @@
         * 
         * @var const
         */
-        const FOLDER = '/proc/sys/net/ipv4';
+        const STATE_FINISH = 'finish';
         
         /**
         * //
         * 
         * @var const
         */
-        const IP_CONNTRACK_MAX = 4096;
+        const FOLDER = '/proc/sys/net/ipv4';
         
         /**
         * //
@@ -84,6 +84,41 @@
         * @var Network
         */
         protected $_network;
+        
+        /**
+        * //
+        * 
+        * @var Telnet
+        */
+        protected $_telnet;
+        
+        /**
+        * //
+        * 
+        * @var string
+        */
+        protected $_host;
+        
+        /**
+        * //
+        * 
+        * @var string
+        */
+        protected $_login = 'admin';
+        
+        /**
+        * //
+        * 
+        * @var string
+        */
+        protected $_passwd = 'admin';
+        
+        /**
+        * //
+        * 
+        * @var int
+        */
+        protected $_ip_conntrack_max = 4096;
         
         /**
         * //
@@ -106,15 +141,58 @@
         */
         protected $_result;
         
+        /**
+        * //
+        * 
+        * @var boolean
+        */
+        protected $_continue = true;
+        
         public static function create() {
             return new self();
         }
         
         public function setNetwork(Network $net) {
             $this->_network = $net;
+            return $this;
         }
         
-        public function onTelnetConnected(Telnet $telnet, IO_Stream_Abstract $stream) {
+        public function setTelnet(Telnet $telnet) {
+            $this->_telnet = $telnet;
+            return $this;
+        }
+        
+        public function setHost($host) {
+            $this->_host = $host;
+            return $this;
+        }
+        
+        public function setLogin($login) {
+            $this->_login = $login;
+            return $this;
+        }
+        
+        public function setPasswd($passwd) {
+            $this->_passwd = $passwd;
+            return $this;
+        }
+        
+        public function setConntrackMax($max) {
+            $this->_ip_conntrack_max = $max;
+            return $this;
+        }                
+        
+        public function fixIt() {
+            $this->_telnet->setListener($this);
+            $this->_telnet->connect($this->_host);
+            
+            while($this->_continue) {
+                $this->_network->dispatchStreams();
+            }
+        }
+        
+        public function onTelnetConnected(Telnet $telnet,
+                                          IO_Stream_Abstract $stream) {
             $this->_network->registerStream($stream);
         }
         
@@ -125,15 +203,19 @@
                 $this->_result = substr($promt, 0, $pos);
                 $this->_result = rtrim($this->_result, CRLF);
                 
-                $this->fixIt($telnet);
+                $this->_fixIt($telnet);
             }
             elseif ($this->_stringEnds(self::LOGIN_PROMT, $promt)) 
             {
-                $telnet->sendString('admin');
+                $this->_print('Sending login...', true);
+                
+                $telnet->sendString($this->_login);
             }
             elseif ($this->_stringEnds(self::PASSWD_PROMT, $promt)) 
             {
-                $telnet->sendString('admin', false);
+                $this->_print('Sending password...', true);
+                
+                $telnet->sendString($this->_passwd, false);
             }
             else
             {
@@ -143,15 +225,26 @@
             return Telnet_Listener_Interface::SUCCESS;
         }
         
-        public function onTelnetDisconnected(Telnet $telnet, IO_Stream_Abstract $stream) {
+        public function onTelnetDisconnected(Telnet $telnet,
+                                             IO_Stream_Abstract $stream) {
             $this->_network->unregisterStream($stream);
-            throw new Exception('Telnet disconnected');
+                 
+            if (self::STATE_FINISH !== $this->_state) {
+                $msg = 'Something went wrong :(';
+            } else {
+                $msg = 'Everything is ok :)';
+            }
+            
+            $this->_print($msg);
+            $this->_continue = false;
         }
         
-        public function fixIt(Telnet $telnet) {
+        protected function _fixIt(Telnet $telnet) {
             switch ($this->_state)
             {
                 case self::STATE_START:
+                    $this->_print('Changing folder...');
+                    
                     $telnet->sendString('cd ' . self::FOLDER);
                     $this->_state = self::STATE_IN_FOLDER;
                     break;
@@ -162,23 +255,36 @@
                     break;
                     
                 case self::STATE_FOLDER_CHECK:
-                    if (self::FOLDER != $this->_result) {
+                    if (self::FOLDER != $this->_result)
+                    {
                         $msg = 'Couldn\'t change folder to ' . self::FOLDER;
-                        throw new Exception($msg);
+                        $this->_print(CRLF . $msg, true);
+                        
+                        $this->_telnet->disconnect();
+                        return;
                     }
                     
+                    $this->_print(' Ok', true);
+                    $this->_print('Checking ip_conntrack_max value...');
+                                              
                     $telnet->sendString('cat ip_conntrack_max');
                     $this->_state = self::STATE_CHECK_VALUE;
                     break;
                     
                 case self::STATE_CHECK_VALUE:
-                    if ($this->_result >= self::IP_CONNTRACK_MAX) {
-                        $msg = 'The value bigest enough is set already: ' .
-                               $this->_result;
-                        throw new Exception($msg);
+                    if ($this->_result >= $this->_ip_conntrack_max)
+                    {
+                        $msg = 'The value bigest enough is set already: ';
+                        $this->_print(CRLF . $msg . $this->_result, true);
+                        
+                        $this->_telnet->disconnect();
+                        return;
                     }
                     
-                    $cmd = 'echo ' . self::IP_CONNTRACK_MAX .
+                    $this->_print(' Ok', true);
+                    $this->_print('Fixing ip_conntrack_max value...');
+                    
+                    $cmd = 'echo ' . $this->_ip_conntrack_max .
                            ' > ip_conntrack_max';
                            
                     $telnet->sendString($cmd);
@@ -191,15 +297,26 @@
                     break;
                     
                 case self::STATE_VALUE_IS_SET:
-                    if ($this->_result != self::IP_CONNTRACK_MAX) {
+                    if ($this->_result != $this->_ip_conntrack_max)
+                    {
                         $msg = 'Couldn\'t change value ' . $this->_result .
-                               ' to ' . self::IP_CONNTRACK_MAX;
-                        throw new Exception($msg);
+                               ' to ' . $this->_ip_conntrack_max;
+                        $this->_print(CRLF . $msg, true);
+                        
+                        $this->_telnet->disconnect();
+                        return;
                     }
                     
+                    $this->_print(' Ok', true);
+                    
                     $telnet->sendString('exit');
+                    $this->_state = self::STATE_FINISH;
                     break;
             }
+        }
+        
+        protected function _print($msg, $new_line = false) {
+            echo $msg . ($new_line ? CRLF : '');
         }
         
         protected function _stringEnds($needle, $haystack) {
