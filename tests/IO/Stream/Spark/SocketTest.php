@@ -6,11 +6,21 @@
         protected $_opts = array('host' => 'yandex.ru',
                                  'port' => 80);
                                  
-        public function testGeneric() {
+        public function testCreate() {
+            $spark = IO_Stream_Spark_Socket::create($this->_opts);
+            $this->assertType('IO_Stream_Spark_Socket', $spark);
+        }
+        
+        public function testStream() {
             $spark = IO_Stream_Spark_Socket::create($this->_opts);
             
-            $this->assertType('IO_Stream_Spark_Socket', $spark);
             $this->assertTrue($spark->ignite());
+            $this->assertType('resource', $spark->getStream());
+        }
+        
+        public function testInfo() {
+            $spark = IO_Stream_Spark_Socket::create($this->_opts);
+            $spark->ignite();
             
             $name = $spark->getName();
             $this->assertType('string', $name);

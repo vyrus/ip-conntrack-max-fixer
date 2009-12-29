@@ -3,7 +3,7 @@
     /**
     * @todo Вынести сюда все общие атрибуты и методы дочерних классов.
     */
-    abstract class IO_Stream_Abstract extends FactoryClass {
+    class IO_Stream {
         /**
         * @var const
         * @todo Заменить стринговые значения для отладки на цифровые?
@@ -26,9 +26,32 @@
         const OPERATION_ACCEPT = 4 /* 'accept' */;
         
         /**
+        * Режим потока: блокирующийся.
+        * 
+        * @var int
+        */
+        const MODE_BLOCKING = 1;
+        
+        /**
+        * Режим потока: неблокирующийся.
+        * 
+        * @var int
+        */
+        const MODE_NONBLOCKING = 0;
+        
+        /**
+        * Искра потока.
+        * 
+        * @vaк IO_Stream_Spark_Interface
+        */
+        protected $_spark;
+        
+        /**
+        * Сырой поток.
+        * 
         * @var resource
         */
-        protected $stream;
+        protected $_stream;
         
         protected $closed = false;
         
@@ -67,7 +90,7 @@
         /**
         * @var Options
         */
-        protected $options;
+        protected $_opts;
         
         /**
         * @var array
@@ -76,11 +99,17 @@
             'enable_profiler' => false
         );
         
+        /**
+        * Создание нового объекта потока.
+        * 
+        * @param  array|Options $options Опции объекта.
+        * @return IO_Stream
+        */
         public function __construct($options = null) {
-            $this->options = Options::create($this->default_options);
+            $this->_opts = Options::create($this->default_options);
             
             if (null !== $options) {
-                $this->options->apply($options);
+                $this->_opts->apply($options);
             }
             
             /**
@@ -88,15 +117,37 @@
             */
             $this->interest_ops = BitFlags::create(self::OPERATION_NONE);
             $this->ready_ops    = BitFlags::create(self::OPERATION_NONE);
-            
-            $this->init();
         }
         
-        public static function create($type, $options = null) {
-            return self::factory($type, $options, __CLASS__);
+        /**
+        * Создание нового объекта потока.
+        * 
+        * @param  array|Options $options Опции объекта
+        * @return IO_Stream
+        */
+        public static function create($options = null) {
+            return new self($options);
         }
         
-        public function init() {/*_*/}
+        /**
+        * Установка искры потока.
+        * 
+        * @param IO_Stream_Spark_Interface $spark
+        * @return void
+        */
+        public function setSpark(IO_Stream_Spark_Interface $spark) {
+            $this->_spark = $spark;
+            $this->_stream = $spark->getStream();
+        }
+        
+        /**
+        * Возвращает искру потока.
+        * 
+        * @return IO_Stream_Spark_Interface
+        */
+        public function getSpark() {
+            return $this->_spark;
+        }
         
         public function stream() {
             return $this->stream;
@@ -118,8 +169,6 @@
             
             return $open;
         }
-        
-        abstract function open();
         
         public function read($length) {
             if (!$this->isOpen()) {
@@ -146,11 +195,12 @@
         }
         
         public function setBlockingMode($mode) {
-            if (false === ($result = stream_set_blocking($this->stream, $mode))) {
-                throw new IO_Stream_Exception('Ошибка при установке режима блокировки: ' . $mode);
-            }
+            $result = stream_set_blocking($this->_stream, $mode);
             
-            $this->blocking_mode = $mode;
+            if (false === $result) {
+                $e = 'Ошибка при установке режима блокировки: ' . $mode;
+                throw new IO_Stream_Exception($e);
+            }
             
             return $result;
         }
@@ -215,10 +265,21 @@
             return $this->attachments[$key];
         }
         
+        /**
+        * Установка слушателя событий потока.
+        * 
+        * @param IO_Stream_Listener_Interface $listener
+        * @return void
+        */
         public function setListener(IO_Stream_Listener_Interface $listener) {
             $this->_listener = $listener;
         }
         
+        /**
+        * Получение слушателья событий потока.
+        * 
+        * @return IO_Stream_Listener_Interface
+        */
         public function getListener() {
             return $this->_listener;
         }

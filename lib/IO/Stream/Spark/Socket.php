@@ -92,6 +92,15 @@
         }
         
         /**
+        * Возвращает "сырой" поток.
+        * 
+        * @return resource
+        */
+        public function getStream() {
+            return $this->_stream;
+        }
+        
+        /**
         * Возвращает информацию о локальном и удалённом сокетах. Обёртка для
         * stream_socket_get_name().
         * 

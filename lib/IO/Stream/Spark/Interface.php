@@ -7,6 +7,13 @@
         * @return boolean
         */
         public function ignite();
+        
+        /**
+        * Возвращает "сырой" поток.
+        * 
+        * @return resource
+        */
+        public function getStream();
     }
     
 ?>
