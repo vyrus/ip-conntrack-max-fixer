@@ -38,6 +38,53 @@
             $stream->setListener($listener);
             $this->assertEquals($listener, $stream->getListener());
         }
+        
+        /**
+        * Работа с флагами операций потока.
+        */
+        public function testOpFlags() {
+            $stream = IO_Stream::create();
+            
+            $read   = IO_Stream::OPERATION_READ;
+            $write  = IO_Stream::OPERATION_WRITE;
+            $accept = IO_Stream::OPERATION_ACCEPT;
+            
+            $this->assertFalse($stream->getInterest($read));
+            $this->assertFalse($stream->getInterest($write));
+            $this->assertFalse($stream->getInterest($accept));
+            
+            $this->assertFalse($stream->getReady($read));
+            $this->assertFalse($stream->getReady($write));
+            $this->assertFalse($stream->getReady($accept));
+            
+            $stream->setInterest($read);
+            $stream->setInterest($write);
+            $stream->setInterest($accept);
+            
+            $this->assertTrue($stream->getInterest($read));
+            $this->assertTrue($stream->getInterest($write));
+            $this->assertTrue($stream->getInterest($accept));
+            
+            $stream->setReady($read);
+            $stream->setReady($write);
+            $stream->setReady($accept);
+            
+            $this->assertTrue($stream->getReady($read));
+            $this->assertTrue($stream->getReady($write));
+            $this->assertTrue($stream->getReady($accept));
+            
+            $stream->resetAllInterest();
+            
+            $this->assertFalse($stream->getInterest($read));
+            $this->assertFalse($stream->getInterest($write));
+            $this->assertFalse($stream->getInterest($accept));
+            
+            $stream->resetAllReady();
+            
+            $this->assertFalse($stream->getReady($read));
+            $this->assertFalse($stream->getReady($write));
+            $this->assertFalse($stream->getReady($accept));
+        }
     }
     
 ?>

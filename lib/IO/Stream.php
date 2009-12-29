@@ -6,24 +6,18 @@
     class IO_Stream {
         /**
         * @var const
-        * @todo Заменить стринговые значения для отладки на цифровые?
         */
-        const OPERATION_NONE = 0 /*'none'*/;
+        const OPERATION_READ = 'read';
         
         /**
         * @var const
         */
-        const OPERATION_READ = 1 /* 'read' */;
+        const OPERATION_WRITE = 'write';
         
         /**
         * @var const
         */
-        const OPERATION_WRITE = 2 /* 'write' */;
-        
-        /**
-        * @var const
-        */
-        const OPERATION_ACCEPT = 4 /* 'accept' */;
+        const OPERATION_ACCEPT = 'accept';
         
         /**
         * Режим потока: блокирующийся.
@@ -56,29 +50,18 @@
         protected $closed = false;
         
         /**
-        * @var int
-        */
-        protected $blocking_mode;
-        
-        /**
-        * @todo Заюзать BitFlags?
-        */
-        /**
-        * @var BitFlags
-        * @todo Перевести на обычный массив. 
-        */
-        protected $interest_ops;
-        
-        /**
-        * @var BitFlags
-        * @todo Перевести на обычный массив.
-        */
-        protected $ready_ops;
-        
-        /**
+        * Массив флагов потока, указывающих, в каких операциях он заинтересован.
+        * 
         * @var array
         */
-        protected $attachments = array();
+        protected $_ops_interest;
+        
+        /**
+        * Массив флагок потока, показывающих, к каким операциям он готов.
+        * 
+        * @var array
+        */
+        protected $_ops_ready;
         
         /**
         * Объект, обрабатывающий события потока.
@@ -88,11 +71,15 @@
         protected $_listener;
         
         /**
+        * Опции потока.
+        * 
         * @var Options
         */
         protected $_opts;
         
         /**
+        * Значения опций потока по умолчанию.
+        * 
         * @var array
         */
         protected $default_options = array(
@@ -112,11 +99,8 @@
                 $this->_opts->apply($options);
             }
             
-            /**
-            * @todo Переделать для использования массивов вместо BitFlags.
-            */
-            $this->interest_ops = BitFlags::create(self::OPERATION_NONE);
-            $this->ready_ops    = BitFlags::create(self::OPERATION_NONE);
+            $this->resetAllInterest();
+            $this->resetAllReady();
         }
         
         /**
@@ -147,6 +131,25 @@
         */
         public function getSpark() {
             return $this->_spark;
+        }
+        
+        /**
+        * Установка слушателя событий потока.
+        * 
+        * @param IO_Stream_Listener_Interface $listener
+        * @return void
+        */
+        public function setListener(IO_Stream_Listener_Interface $listener) {
+            $this->_listener = $listener;
+        }
+        
+        /**
+        * Получение слушателья событий потока.
+        * 
+        * @return IO_Stream_Listener_Interface
+        */
+        public function getListener() {
+            return $this->_listener;
         }
         
         public function stream() {
@@ -229,59 +232,61 @@
             }
         }
         
-        public function setInterest($operations) {
-            $this->interest_ops->set($operations);     
-        }
-        
-        public function interestedIn($operations) {
-            return $this->interest_ops->is_set($operations);
-        }
-        
-        public function resetInterest($operations) {
-            return $this->interest_ops->reset($operations);
-        }
-        
-        public function setReady($operations) {
-            $this->ready_ops->set($operations);
-        }
-        
-        public function isReady($operations) {
-            return $this->ready_ops->is_set($operations);
-        }
-        
-        public function resetReady() {
-            $this->ready_ops->reset();
-        }
-        
-        public function attach($key, $attachment) {
-            $this->attachments[$key] = $attachment;
-        }
-        
-        public function attachment($key) {
-            if (!array_key_exists($key, $this->attachments)) {
-                return null;
-            }
-            
-            return $this->attachments[$key];
-        }
-        
         /**
-        * Установка слушателя событий потока.
+        * Возведение флажка о заинтересованности в операции.
         * 
-        * @param IO_Stream_Listener_Interface $listener
+        * @param mixed $operation
         * @return void
         */
-        public function setListener(IO_Stream_Listener_Interface $listener) {
-            $this->_listener = $listener;
+        public function setInterest($operation) {
+            $this->_ops_interest[$operation] = true;     
         }
         
         /**
-        * Получение слушателья событий потока.
+        * Получения значения флажка операции - интересует ли она поток или нет.
         * 
-        * @return IO_Stream_Listener_Interface
+        * @param  mixed $operation
+        * @return boolean
         */
-        public function getListener() {
-            return $this->_listener;
+        public function getInterest($operation) {
+            return (true === $this->_ops_interest[$operation]);
+        }
+        
+        public function resetInterest($operation) {
+            $this->_ops_interest[$operation] = false;
+        }
+        
+        public function resetAllInterest() {
+            $this->_ops_interest = array(self::OPERATION_READ   => false,
+                                         self::OPERATION_WRITE  => false,
+                                         self::OPERATION_ACCEPT => false);
+        }
+        
+        /**
+        * Возведение флажка о готовности к операции.
+        * 
+        * @param mixed $operation
+        * @return void
+        */
+        public function setReady($operation) {
+            $this->_ops_ready[$operation] = true;
+        }
+        
+        /**
+        * Получения значения флажка операции - готов поток к осуществлению такой
+        * операции или нет.
+        * 
+        * @param  mixed $operation
+        * @return boolean
+        */
+        public function getReady($operation) {
+            return (true === $this->_ops_ready[$operation]);
+        }
+        
+        public function resetAllReady() {
+            $this->_ops_ready = array(self::OPERATION_READ   => false,
+                                      self::OPERATION_WRITE  => false,
+                                      self::OPERATION_ACCEPT => false);
         }
     }
 

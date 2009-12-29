@@ -10,5 +10,5 @@
     echo '<pre>';
         PHPUnit_TextUI_TestRunner::run($suite);
     echo '</pre>';
-    
+                        
 ?>
