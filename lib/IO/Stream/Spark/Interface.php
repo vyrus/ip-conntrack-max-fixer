@@ -1,5 +1,8 @@
 <?php
     
+    /**
+    * Интерфейс искры потока.
+    */
     interface IO_Stream_Spark_Interface {
         /**
         * Открытие потока.

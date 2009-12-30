@@ -5,36 +5,7 @@
     * запись, смена режима блокировки, закрытие). Функции, специфичные для
     * разных типов потоков, помещаются в искры (IO_Stream_Spark_*).
     */
-    class IO_Stream {
-        /**
-        * @var const
-        */
-        const OPERATION_READ = 'read';
-        
-        /**
-        * @var const
-        */
-        const OPERATION_WRITE = 'write';
-        
-        /**
-        * @var const
-        */
-        const OPERATION_ACCEPT = 'accept';
-        
-        /**
-        * Режим потока: неблокирующийся.
-        * 
-        * @var int
-        */
-        const MODE_NONBLOCKING = 0;
-        
-        /**
-        * Режим потока: блокирующийся.
-        * 
-        * @var int
-        */
-        const MODE_BLOCKING = 1;
-        
+    class IO_Stream implements IO_Stream_Interface {
         /**
         * Искра потока.
         * 
@@ -249,6 +220,7 @@
         /**
         * Возвращает "сырой" ресурс потока.
         * 
+        * @return resource
         */
         public function getStream() {
             return $this->_stream;
