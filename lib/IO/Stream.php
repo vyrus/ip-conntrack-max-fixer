@@ -1,7 +1,9 @@
 <?php
 
     /**
-    * @todo Вынести сюда все общие атрибуты и методы дочерних классов.
+    * Класс-обёртка для работы с потоками. Инкапсулирует общие функции (чтение,
+    * запись, смена режима блокировки, закрытие). Функции, специфичные для
+    * разных типов потоков, помещаются в искры (IO_Stream_Spark_*).
     */
     class IO_Stream {
         /**
@@ -285,7 +287,7 @@
         public function close() {
             if ($this->isOpen())
             {
-                if (false !== fclose($this->stream))
+                if (false !== fclose($this->_stream))
                 {
                     $e = 'Ошибка при закрытии потока';
                     throw new IO_Stream_Exception($e);
@@ -296,39 +298,62 @@
         }
         
         /**
-        * Обёртка для feof(). Возвращает true, если достигнут конец потока или 
-        * если произошла ошибка (включая таймаут для сокетов), иначе false.
+        * Возвращает true, если достигнут конец потока или если произошла 
+        * ошибка (включая таймаут для сокетов), иначе false. Обёртка для feof().
         * 
         * @return boolean
         */
         public function eof() {
-            return feof($this->stream);
+            return feof($this->_stream);
         }
         
+        /**
+        * Чтение данных из потока. Обёртка для fread().
+        * 
+        * @param  int $length Количество байт, которые надо прочитать.
+        * @return string Блок данных.
+        * @throws IO_Stream_Exception При ошибке чтения или если поток закрыт.
+        */
         public function read($length) {
             if (!$this->isOpen()) {
-                throw new IO_Stream_Exception('Попытка чтения из закрытого потока');
+                $e = 'Попытка чтения из закрытого потока';
+                throw new IO_Stream_Exception($e);
             }
             
-            if (false === ($data = fread($this->stream, $length))) {
+            if (false === ($data = fread($this->_stream, $length))) {
                 throw new IO_Stream_Exception('Ошибка при чтении из потока');
             }
             
             return $data;
         }
         
+        /**
+        * Запись данных в поток. Обёртка для fwrite().
+        * 
+        * @param  string $data Блок данных.
+        * @return int Количество записанных байт.
+        * @throws IO_Stream_Exception При ошибке записи или если поток закрыт.
+        */
         public function write($data) {
-            if (!$this->isOpen()) {
-                throw new IO_Stream_Exception('Попытка записи в закрытый поток');
+            if (!$this->isOpen()) {           
+                $e = 'Попытка записи в закрытый поток';
+                throw new IO_Stream_Exception($e);
             }
             
-            if (false === ($bytes_written = fwrite($this->stream, $data))) {
+            if (false === ($bytes_written = fwrite($this->_stream, $data))) {
                 throw new IO_Stream_Exception('Ошибка при записи в поток');
             }
             
             return $bytes_written;
         }
         
+        /**
+        * Установка блокирующегося/неблокирующегося режима для потока.
+        * 
+        * @param  int $mode self::MODE_BLOCKING/self::MODE_NONBLOCKING.
+        * @return boolean
+        * @throws IO_Stream_Exception При ошибке установки режима.
+        */
         public function setBlockingMode($mode) {
             $result = stream_set_blocking($this->_stream, $mode);
             
