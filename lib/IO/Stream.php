@@ -20,18 +20,18 @@
         const OPERATION_ACCEPT = 'accept';
         
         /**
-        * Режим потока: блокирующийся.
-        * 
-        * @var int
-        */
-        const MODE_BLOCKING = 1;
-        
-        /**
         * Режим потока: неблокирующийся.
         * 
         * @var int
         */
         const MODE_NONBLOCKING = 0;
+        
+        /**
+        * Режим потока: блокирующийся.
+        * 
+        * @var int
+        */
+        const MODE_BLOCKING = 1;
         
         /**
         * Искра потока.
@@ -47,7 +47,12 @@
         */
         protected $_stream;
         
-        protected $closed = false;
+        /**
+        * Объект, обрабатывающий события потока.
+        * 
+        * @var IO_Stream_Listener_Interface
+        */
+        protected $_listener;
         
         /**
         * Массив флагов потока, указывающих, в каких операциях он заинтересован.
@@ -64,11 +69,11 @@
         protected $_ops_ready;
         
         /**
-        * Объект, обрабатывающий события потока.
+        * Флаг, обозначающий, закрыт ли поток или нет.
         * 
-        * @var IO_Stream_Listener_Interface
+        * @var boolean
         */
-        protected $_listener;
+        protected $_closed = false;
         
         /**
         * Опции потока.
@@ -99,8 +104,21 @@
                 $this->_opts->apply($options);
             }
             
+            /* Инициализируем флаги операций */
             $this->resetAllInterest();
             $this->resetAllReady();
+        }
+        
+        /**
+        * Закрытие потока при уничтожении объекта.
+        * 
+        * @return void
+        */
+        public function __destruct() {
+            try {
+                $this->close();
+            }
+            catch (Exception $e) {/*_*/}
         }
         
         /**
@@ -152,25 +170,139 @@
             return $this->_listener;
         }
         
-        public function stream() {
-            return $this->stream;
+        /**
+        * Возведение флажка о заинтересованности в операции.
+        * 
+        * @param mixed $operation
+        * @return void
+        */
+        public function setInterest($operation) {
+            $this->_ops_interest[$operation] = true;     
         }
         
         /**
-        * @todo Проверить на уникальность, так как потом это значение используется в массивах в качестве уникальных ключей. 
+        * Получения значения флажка операции - интересует ли она поток или нет.
+        * 
+        * @param  mixed $operation
+        * @return boolean
         */
-        public function id() {
-            return (int) $this->stream;
+        public function getInterest($operation) {
+            return (true === $this->_ops_interest[$operation]);
         }
         
+        /**
+        * Сброс флага заинтересованности в операции.
+        * 
+        * @param mixed $operation
+        * @return void
+        */
+        public function resetInterest($operation) {
+            $this->_ops_interest[$operation] = false;
+        }
+        
+        /**
+        * Сброс флагов заинтересованности для всех операций (чтение, запись и
+        * приём входящих соединений).
+        * 
+        * @return void
+        */
+        public function resetAllInterest() {
+            $this->_ops_interest = array(self::OPERATION_READ   => false,
+                                         self::OPERATION_WRITE  => false,
+                                         self::OPERATION_ACCEPT => false);
+        }
+        
+        /**
+        * Возведение флажка о готовности к операции.
+        * 
+        * @param mixed $operation
+        * @return void
+        */
+        public function setReady($operation) {
+            $this->_ops_ready[$operation] = true;
+        }
+        
+        /**
+        * Получения значения флажка операции - готов поток к осуществлению такой
+        * операции или нет.
+        * 
+        * @param  mixed $operation
+        * @return boolean
+        */
+        public function getReady($operation) {
+            return (true === $this->_ops_ready[$operation]);
+        }
+        
+        /**
+        * Сброс всех флагов готовости к операциям.
+        * 
+        * @return void
+        */
+        public function resetAllReady() {
+            $this->_ops_ready = array(self::OPERATION_READ   => false,
+                                      self::OPERATION_WRITE  => false,
+                                      self::OPERATION_ACCEPT => false);
+        }
+        
+        /**
+        * Возвращает "сырой" ресурс потока.
+        * 
+        */
+        public function getStream() {
+            return $this->_stream;
+        }
+        
+        /**
+        * Возвращает номер ресурса потока.
+        * 
+        * @return int 
+        */
+        public function getStreamId() {
+            return (int) $this->_stream;
+        }
+        
+        /**
+        * Возвращает true, если поток открыт, иначе false.
+        * 
+        * @return boolean
+        */
         public function isOpen() {
-            if ($this->closed) {
+            if ($this->_closed) {
                 $open = false;
             } else {
-                $open = is_resource($this->stream) && !$this->eof();
+                $open = is_resource($this->_stream) && !$this->eof();
             }
             
             return $open;
+        }
+        
+        /**
+        * Закрытие потока.
+        * 
+        * @return void
+        * @throws IO_Stream_Exception Если возникла ошибка при закрытии потока.
+        */
+        public function close() {
+            if ($this->isOpen())
+            {
+                if (false !== fclose($this->stream))
+                {
+                    $e = 'Ошибка при закрытии потока';
+                    throw new IO_Stream_Exception($e);
+                }
+            }
+            
+            $this->_closed = true;
+        }
+        
+        /**
+        * Обёртка для feof(). Возвращает true, если достигнут конец потока или 
+        * если произошла ошибка (включая таймаут для сокетов), иначе false.
+        * 
+        * @return boolean
+        */
+        public function eof() {
+            return feof($this->stream);
         }
         
         public function read($length) {
@@ -206,87 +338,6 @@
             }
             
             return $result;
-        }
-        
-        public function eof() {
-            return feof($this->stream);
-        }
-        
-        public function close() {
-            if ($this->isOpen()) {
-                /**
-                * @todo Зачем нам тут бросать эксепшн? Мы лучше по-тихому... :-)
-                */
-                //throw new IO_Stream_Exception('Попытка закрытия уже закрытого потока');
-                fclose($this->stream);
-            }
-            
-            $this->closed = true;
-        }
-        
-        public function __destruct() {
-            if (!$this->closed) {
-                try {
-                    $this->close();
-                } catch (Exception $e) {/*_*/}
-            }
-        }
-        
-        /**
-        * Возведение флажка о заинтересованности в операции.
-        * 
-        * @param mixed $operation
-        * @return void
-        */
-        public function setInterest($operation) {
-            $this->_ops_interest[$operation] = true;     
-        }
-        
-        /**
-        * Получения значения флажка операции - интересует ли она поток или нет.
-        * 
-        * @param  mixed $operation
-        * @return boolean
-        */
-        public function getInterest($operation) {
-            return (true === $this->_ops_interest[$operation]);
-        }
-        
-        public function resetInterest($operation) {
-            $this->_ops_interest[$operation] = false;
-        }
-        
-        public function resetAllInterest() {
-            $this->_ops_interest = array(self::OPERATION_READ   => false,
-                                         self::OPERATION_WRITE  => false,
-                                         self::OPERATION_ACCEPT => false);
-        }
-        
-        /**
-        * Возведение флажка о готовности к операции.
-        * 
-        * @param mixed $operation
-        * @return void
-        */
-        public function setReady($operation) {
-            $this->_ops_ready[$operation] = true;
-        }
-        
-        /**
-        * Получения значения флажка операции - готов поток к осуществлению такой
-        * операции или нет.
-        * 
-        * @param  mixed $operation
-        * @return boolean
-        */
-        public function getReady($operation) {
-            return (true === $this->_ops_ready[$operation]);
-        }
-        
-        public function resetAllReady() {
-            $this->_ops_ready = array(self::OPERATION_READ   => false,
-                                      self::OPERATION_WRITE  => false,
-                                      self::OPERATION_ACCEPT => false);
         }
     }
 

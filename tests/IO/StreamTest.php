@@ -12,7 +12,7 @@
         }
         
         /**
-        * Установка/получение искры.
+        * Установка/получение искры, получение потока.
         */
         public function testSetGetSpark() {
             $stream = IO_Stream::create();
@@ -25,6 +25,9 @@
                   
             $stream->setSpark($spark);
             $this->assertEquals($spark, $stream->getSpark());
+            
+            $this->assertType('resource', $stream->getStream());
+            $this->assertType('int', $stream->getStreamId());
         }
         
         /**
