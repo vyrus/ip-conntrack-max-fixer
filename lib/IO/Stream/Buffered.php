@@ -1,46 +1,73 @@
 <?php
 
     /**
-    * @todo Rename to IO_Stream_Buffered_Abstract?
+    * Класс потока ввода-вывода с буферами: чтения (в который считываются данные
+    * из потока) и записи (из которого данные записываются в поток).
     */
-    abstract class IO_Stream_Buffered extends IO_Stream_Abstract {
+    class IO_Stream_Buffered extends IO_Stream implements IO_Stream_Buffered_Interface {
         /**
-        * @var IO_Buffer
+        * Буфер чтения.
+        * 
+        * @var IO_Buffer_Interface
         */
-        protected $read_buffer;
+        protected $_read_buffer;
         
         /**
-        * @var IO_Buffer
+        * Буфер записи.
+        * 
+        * @var IO_Buffer_Interface
         */
-        protected $write_buffer;
+        protected $_write_buffer;
         
-        public static function create($type, $options = null) {
-            return self::factory($type, $options, __CLASS__);
+        /**
+        * Создание нового объекта потока.
+        * 
+        * @param  array|Options $options Опции потока.
+        * @return IO_Stream_Buffered
+        */
+        public static function create($options = null) {
+            return new self($options);
         }
         
-        public function init() {
-            $this->read_buffer  = IO_Buffer::create();
-            $this->write_buffer = IO_Buffer::create();
+        /**
+        * Инициализация буферов потока.
+        * 
+        * @return void
+        */
+        protected function _init() {
+            $this->_read_buffer  = IO_Buffer::create();
+            $this->_write_buffer = IO_Buffer::create();
         }
                    
+        /**
+        * Возвращает объект буфера чтения.
+        * 
+        * @return IO_Buffer_Interface
+        */
         public function getReadBuffer() {
-            return $this->read_buffer;
+            return $this->_read_buffer;
         }
         
+        /**
+        * Возвращает объект буфера записи.
+        * 
+        * @return IO_Buffer_Interface
+        */
         public function getWriteBuffer() {
-            return $this->write_buffer;
+            return $this->_write_buffer;
         }
         
         /**
         * Считывает данные из потока в буфер чтения.
         * 
         * @param  int $length Размер в байтах блока данных, который надо прочитать из потока.
-        * @return int Количество байт прочитанных из потока и записанных в буфер чтения.
+        * @return int Количество байт, прочитанных из потока и записанных в буфер чтения.
         */
         public function read($length) {
+            /* Считываем блок из потока */
             $data = parent::read($length);
-            
-            return $this->read_buffer->write($data);                
+            /* И записываем его в буфер */
+            return $this->_read_buffer->write($data);                
         }     
         
         /**
@@ -50,19 +77,27 @@
         * @return int Количество записанных байт.
         */
         public function write($length) {
-            if ($this->write_buffer->length() <= 0) {
-                return false;
+            /* Если в буфере ничего нет, */
+            if ($this->_write_buffer->length() <= 0) {
+                /* то мы ничего и не делаем :) */
+                return 0;
             }
             
-            $this->write_buffer->rewind();
-            $data = $this->write_buffer->read($length);
-            $written = parent::write($data);
-
-            if ($written > 0) {
-                $this->write_buffer->release($written);
+            /* Переходим к началу буфера */
+            $this->_write_buffer->rewind();
+            
+            /* Считываем блок данных необходимого размера */
+            $data = $this->_write_buffer->read($length);
+            /* И записываем его в поток */
+            $bytes_written = parent::write($data);
+            
+            /* Если чего-то записалось, */
+            if ($bytes_written > 0) {
+                /* то удаляем из буфера записанный блок */
+                $this->_write_buffer->release($bytes_written);
             }
             
-            return $written;
+            return $bytes_written;
         }
     }
 

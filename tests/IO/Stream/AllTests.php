@@ -7,6 +7,7 @@
             $suite = new PHPUnit_Framework_TestSuite('IO_Stream');
             
             $suite->addTest(IO_Stream_Spark_AllTests::suite());
+            $suite->addTestSuite('IO_Stream_BufferedTest');
             
             return $suite;
         }

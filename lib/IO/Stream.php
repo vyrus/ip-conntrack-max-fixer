@@ -80,7 +80,17 @@
             /* Инициализируем флаги операций */
             $this->resetAllInterest();
             $this->resetAllReady();
+            
+            /* Производим дополнительную инициализацию (if any) */
+            $this->_init();
         }
+        
+        /**
+        * Метод для дополнительной инициализации дочерних классов.
+        * 
+        * @return void
+        */
+        protected function _init() {/*_*/}
         
         /**
         * Закрытие потока при уничтожении объекта.
@@ -97,7 +107,7 @@
         /**
         * Создание нового объекта потока.
         * 
-        * @param  array|Options $options Опции объекта
+        * @param  array|Options $options Опции потока.
         * @return IO_Stream
         */
         public static function create($options = null) {
