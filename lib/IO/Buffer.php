@@ -1,92 +1,187 @@
 <?php
 
-    class IO_Buffer {
+    /**
+    * Буфер ввода-вывода для временного хранения данных, которые уже были
+    * считаны из потока, но ещё не были обработаны.
+    */
+    class IO_Buffer implements IO_Buffer_Interface {
         /**
+        * Содержимое буфера.
+        * 
         * @var string
         */
-        protected $buffer;
+        protected $_buffer;
         
         /**
+        * Текущая позиция указателя в буфере.
+        * 
         * @var int
         */
-        private $offset = 0;
+        private $_offset = 0;
         
-        protected $options = array(
+        /**
+        * Опции буфера.
+        * 
+        * @var Options
+        */
+        protected $_opts;
+        
+        /**
+        * Значения опций потока по умолчанию.
+        * 
+        * @var array
+        */
+        protected $_default_options = array(
             'enable_profiler' => false,
             'copy_on_write' => null
         );
         
-        public static function create() {
-            return new self();
+        /**
+        * Создание нового объекта буфера.
+        * 
+        * @param  array|Options $options Опции объекта.
+        * @return IO_Buffer
+        */
+        public function __construct($options = null) {
+            $this->_opts = Options::create($this->_default_options);
+            
+            if (null !== $options) {
+                $this->_opts->apply($options);
+            }
         }
         
-        public function setOption($name, $value) {
-            $this->options[$name] = $value;
-        }                      
+        /**
+        * Создание нового объекта буфера.
+        * 
+        * @param  array|Options $options Опции объекта.
+        * @return IO_Buffer
+        */
+        public static function create($options = null) {
+            return new self($options);
+        }
         
-        public function getOption($name) {
-            if (!array_key_exists($name, $this->options)) {
-                return null;
+        /**
+        * Возвращает текущую длину буфера.
+        * 
+        * @return int
+        */
+        public function getLength() {
+            return strlen($this->_buffer);
+        }
+        
+        /**
+        * Возвращает текущую позицию указателя.
+        * 
+        * @return int
+        */
+        public function getOffset() {
+            return $this->_offset;
+        }
+        
+        /**
+        * Сброс позиции указателя на начало буфера.
+        * 
+        * @return void
+        */
+        public function rewind() {
+            $this->_offset = 0;
+        }
+        
+        /**
+        * Перемещение указателя на заданную позицию.
+        * 
+        * @param int $offset Новая позиция указателя.
+        * @return void
+        * @throws IO_Buffer_Exception Если позиция выходит за границу буфера.
+        */
+        public function seek($offset) {
+            /* Проверяем корректность новой позиции */
+            if ($offset < 0 || $offset > $this->getLength())
+            {
+                $e = 'Позиция указателя выходит за текущие границы буфера';
+                throw new IO_Buffer_Exception($e);
             }
             
-            return $this->options[$name];
+            $this->_offset = $offset;
         }
         
+        /**
+        * Считывание блока данных из буфера. Если не указывать количество байт 
+        * для считывания, то будет считан блок с текущей позиции указателя и до 
+        * конца буфера. Иначе - блок, начинающийся с позиции указателя и с 
+        * заданной длинной.
+        * 
+        * @param  int $bytes Количество байт для считывания.
+        * @return string
+        */
         public function read($bytes = null) {
-            $bytes = (null === $bytes ? strlen($this->buffer) : $bytes);
-            $block = substr($this->buffer, $this->offset, $bytes);
-            $this->offset += $bytes;
+            /* Сколько считывать байт: сколько есть всего или сколько задано */
+            $bytes = (null === $bytes ? strlen($this->_buffer) : $bytes);
+            
+            /* Вырезаем блок данных нужной длины */
+            $block = substr($this->_buffer, $this->_offset, $bytes);
+            
+            /* Передвигаем указатель на считанное количество байт вперёд */
+            $this->_offset += $bytes;
             
             return $block;
         }
         
+        /**
+        * Запись данных в буфер.
+        * 
+        * @param  string $data Блок данных
+        * @return int Количество записанных в буфер байт данных.
+        * @throws IO_Buffer_Exception Если не удалось осуществить copy-on-write.
+        */
+        public function write($data) {
+            $copy_buf = $this->_opts->get('copy_on_write');
+            
+            /* Если в опциях установлен буфер для копирования данных, */
+            if ($copy_buf instanceof IO_Buffer_Interface) {
+                /* то сразу и записываем туда переданный блок */
+                $bytes_written = $copy_buf->write($data);
+                
+                if ($bytes_written !== strlen($data)) {
+                    $e = 'Не удалось скопировать блок данных в буфер-копию';
+                    throw new IO_Buffer_Exception($e);
+                }
+            }
+            
+            /* Находим длину блока */
+            $data_len = strlen($data);
+            
+            /* Дописываем блок в содержимое буфера */
+            $this->_buffer .= $data;
+            /* И передвигаем указатель на конец буфера */
+            $this->_offset += $data_len;
+            
+            return $data_len;
+        }
+        
+        /**
+        * Удаляет из буфера блок данных от начала и до текущей позиции указателя
+        * (или до заданной длины блока, если он указан).
+        * 
+        * @param  int $bytes Длины блока для удаления.
+        * @return int Позиция оставшегося блока в границах буфера до удаления.
+        */
         public function release($bytes = null) {
-            $start = (null === $bytes ? $this->offset : $bytes);
-            $this->buffer = substr($this->buffer, $start);
+            /**
+            * Блок какого размера удалять: с начала буфера и до текущей позиции
+            * указателя или до заданной длины.
+            */
+            $start = (null === $bytes ? $this->_offset : $bytes);
+            
+            /* Отрезаем кусок от начала буфера */
+            $this->_buffer = substr($this->_buffer, $start);
+            
+            /* И сбрасываем позицию указателя в начало буфера */
+            $this->rewind();
             
             return $start;
         }
         
-        public function write($data) {
-            if (($copy_buffer = $this->getOption('copy_on_write')) instanceof IO_Buffer) {
-                $copy_buffer->write($data);
-            }
-            
-            $data_len = strlen($data);
-            
-            $this->buffer .= $data;
-            $this->offset += $data_len;
-            
-            return $data_len;
-        }     
-        
-        public function rewind() {
-            $this->offset = 0;
-        }           
-        
-        public function length() {
-            return strlen($this->buffer);
-        }
-        
-        public function offset() {
-            return $this->offset;
-        }
-        
-        public function seek($offset) {
-            /**
-            * @todo Может каких-нибудь проверок сделать?
-            */
-            $this->offset = $offset;
-        }
-        
-        public function __toString() {
-            $raw_buffer = $this->buffer;
-            $this->buffer = base64_encode($this->buffer);
-            $string = print_r($this, true);
-            $this->buffer = $raw_buffer;
-            
-            return $string;
-        }
     }
 
 ?>

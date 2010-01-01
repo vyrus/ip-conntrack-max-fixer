@@ -10,7 +10,7 @@
         protected $read_buffer;
         
         /**
-        * @vaк IO_Buffer
+        * @var IO_Buffer
         */
         protected $write_buffer;
         

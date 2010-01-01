@@ -60,6 +60,9 @@
             /* Проверяем, не разорвалось ли соединение */
             if (!$stream->isOpen()) {
                 $this->selector->unregister($stream);
+                /**
+                * @todo $listener->onStreamClose()?
+                */
                 $listener->onStreamError($stream, 'Поток закрыт');
                 
                 return;
