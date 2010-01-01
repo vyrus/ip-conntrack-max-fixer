@@ -8,6 +8,7 @@
             
             $suite->addTest(IO_Stream_Spark_AllTests::suite());
             $suite->addTestSuite('IO_Stream_BufferedTest');
+            $suite->addTestSuite('IO_Stream_SelectorTest');
             
             return $suite;
         }

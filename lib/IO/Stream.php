@@ -232,7 +232,7 @@
         * 
         * @return resource
         */
-        public function getStream() {
+        public function getRawStream() {
             return $this->_stream;
         }
         
@@ -241,7 +241,7 @@
         * 
         * @return int 
         */
-        public function getStreamId() {
+        public function getId() {
             return (int) $this->_stream;
         }
         

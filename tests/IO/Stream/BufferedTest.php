@@ -3,6 +3,9 @@
     require_once dirname(__FILE__) . '/../../init.php';
 
     class IO_Stream_BufferedTest extends PHPUnit_Framework_TestCase {
+        /**
+        * Что можем, то и тестируем... =)
+        */
         public function testGeneric() {
             $stream = IO_Stream_Buffered::create();
             

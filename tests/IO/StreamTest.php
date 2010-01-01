@@ -26,8 +26,8 @@
             $stream->setSpark($spark);
             $this->assertEquals($spark, $stream->getSpark());
             
-            $this->assertType('resource', $stream->getStream());
-            $this->assertType('int', $stream->getStreamId());
+            $this->assertType('resource', $stream->getRawStream());
+            $this->assertType('int', $stream->getId());
         }
         
         /**

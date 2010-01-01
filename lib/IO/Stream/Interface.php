@@ -1,7 +1,7 @@
 <?php
     
     /**
-    * Интерфейс потока ввода-вывода.
+    * Интерфейс потока ввода/вывода.
     */
     interface IO_Stream_Interface {
         /**
@@ -124,14 +124,14 @@
         * 
         * @return resource
         */
-        public function getStream();
+        public function getRawStream();
         
         /**
         * Возвращает номер ресурса потока.
         * 
         * @return int 
         */
-        public function getStreamId();
+        public function getId();
         
         /**
         * Возвращает true, если поток открыт, иначе false.
