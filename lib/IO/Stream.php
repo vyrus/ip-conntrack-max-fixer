@@ -60,7 +60,7 @@
         * 
         * @var array
         */
-        protected $default_options = array(
+        protected $_default_options = array(
             'enable_profiler' => false
         );
         
@@ -71,7 +71,7 @@
         * @return IO_Stream
         */
         public function __construct($options = null) {
-            $this->_opts = Options::create($this->default_options);
+            $this->_opts = Options::create($this->_default_options);
             
             if (null !== $options) {
                 $this->_opts->apply($options);
