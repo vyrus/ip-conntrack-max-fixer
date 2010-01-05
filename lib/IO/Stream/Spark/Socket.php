@@ -40,25 +40,36 @@
         /**
         * Инициализация искры.
         * 
-        * @param array|Options $options Опции объекта.
+        * @param  IO_Stream_Spark_Context_Interface $context Контекст искры.
         * @return IO_Stream_Spark_Socket
         */
-        public function __construct($options = null) {
-            $this->_opts = Options::create($this->_default_options);
-            
-            if (null !== $options) {
-                $this->_opts->apply($options);
-            }
+        public function __construct(
+            IO_Stream_Spark_Context_Interface $context
+        ) {
+            $this->_opts = $context->createOptions();
+            $this->setOptions($this->_default_options);
         }
         
         /**
         * Создание новой искры.
         * 
-        * @param array|Options $options Опции объекта.
-        * @return IO_Stream_Spark_Socket Fluent interface.
+        * @param  IO_Stream_Spark_Context_Interface $context Контекст искры.
+        * @return IO_Stream_Spark_Socket
         */
-        public static function create($options = null) {
-            return new self($options);
+        public static function create(
+            IO_Stream_Spark_Context_Interface $context
+        ) {
+            return new self($context);
+        }
+        
+        /**
+        * Установка опций искры.
+        * 
+        * @param  array|Options $options
+        * @return void
+        */
+        public function setOptions($options = array()) {
+            $this->_opts->apply($options);
         }
         
         /**
@@ -68,10 +79,10 @@
         * @throws IO_Stream_Spark_Socket_Exception
         */
         public function ignite() {
-            $url = sprintf('%s://%s:%d', $this->_opts->transport,
-                                         $this->_opts->host,
-                                         $this->_opts->port);
-            $timeout = $this->_opts->connect_timeout;
+            $url = sprintf('%s://%s:%d', $this->_opts->get('transport'),
+                                         $this->_opts->get('host'),
+                                         $this->_opts->get('port'));
+            $timeout = $this->_opts->get('connect_timeout');
                                                   
             /**
             * @todo Попробовать сделать подключение асинхронным
