@@ -39,25 +39,32 @@
         /**
         * Создание нового объекта буфера.
         * 
-        * @param  array|Options $options Опции объекта.
+        * @param  IO_Buffer_Context_Interface Контекст буфера.
         * @return IO_Buffer
         */
-        public function __construct($options = null) {
-            $this->_opts = Options::create($this->_default_options);
-            
-            if (null !== $options) {
-                $this->_opts->apply($options);
-            }
+        public function __construct(IO_Buffer_Context_Interface $context) {
+            $this->_opts = $context->createOptions();
+            $this->setOptions($this->_default_options);
         }
         
         /**
         * Создание нового объекта буфера.
         * 
-        * @param  array|Options $options Опции объекта.
+        * @param  IO_Buffer_Context_Interface Контекст буфера.
         * @return IO_Buffer
         */
-        public static function create($options = null) {
-            return new self($options);
+        public static function create(IO_Buffer_Context_Interface $context) {
+            return new self($context);
+        }
+        
+        /**
+        * Установка опций буфера.
+        * 
+        * @param  array|Options $options
+        * @return void
+        */
+        public function setOptions($options = array()) {
+            $this->_opts->apply($options);
         }
         
         /**

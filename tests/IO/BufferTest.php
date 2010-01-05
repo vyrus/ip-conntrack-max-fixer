@@ -6,10 +6,43 @@
         protected $_data = '1234567';
         
         /**
+        * Тест создания нового объекта буфера и установки параметров.
+        */
+        public function testCreate() {
+            /* Создаём заглушки */
+            $context = $this->getMock('IO_Buffer_Context_Interface');
+            $opts    = $this->getMock('Options_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Установка параметров */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $buf = IO_Buffer::create($context);
+        }
+        
+        /**
         * Тест чтения-записи.
         */
         public function testReadWrite() {
-            $buf = IO_Buffer::create();
+            /* Создаём заглушки */
+            $context = $this->getMock('IO_Buffer_Context_Interface');
+            $opts    = $this->getMock('Options_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Установка параметров */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $buf = IO_Buffer::create($context);
             $data_len = strlen($this->_data);
             
             /* Записываем данные */
@@ -65,8 +98,20 @@
         * Тест работы указателя в буфере.
         */
         public function testOffset() {
-            $buf = IO_Buffer::create();
-            $data_len = strlen($this->_data);
+            /* Создаём заглушки */
+            $context = $this->getMock('IO_Buffer_Context_Interface');
+            $opts    = $this->getMock('Options_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Установка параметров */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $buf = IO_Buffer::create($context);$data_len = strlen($this->_data);
             
             /* Ожидаем нулевую позицию указателя */
             $this->assertEquals(0, $buf->getOffset());
@@ -95,7 +140,20 @@
         * Тест некорректной работы с указателем.
         */
         public function testOffsetFail_1() {
-            $buf = IO_Buffer::create();
+            /* Создаём заглушки */
+            $context = $this->getMock('IO_Buffer_Context_Interface');
+            $opts    = $this->getMock('Options_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Установка параметров */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $buf = IO_Buffer::create($context);
             $data_len = strlen($this->_data);
             
             $bytes_written = $buf->write($this->_data);
@@ -109,7 +167,20 @@
         * Тест некорректной работы с указателем.
         */
         public function testOffsetFail_2() {
-            $buf = IO_Buffer::create();
+            /* Создаём заглушки */
+            $context = $this->getMock('IO_Buffer_Context_Interface');
+            $opts    = $this->getMock('Options_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Установка параметров */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $buf = IO_Buffer::create($context);
             $data_len = strlen($this->_data);
             
             $bytes_written = $buf->write($this->_data);
@@ -123,20 +194,35 @@
         * Тест для проверки функции копирования-при-записи.
         */
         public function testCopyOnWrite() {
-            /* Создаём заглушку для буфера копирования */
+            /* Создаём заглушки */
+            $context  = $this->getMock('IO_Buffer_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
             $copy_buf = $this->getMock('IO_Buffer_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Дважды устанавливаем параметры */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $opts->expects($this->once())
+                 ->method('get')
+                 ->with($this->equalTo('copy_on_write'))
+                 ->will($this->returnValue($copy_buf));
             
             $callback = array($this, 'writeCallback');
             
+            /* Один раз произойдёт запись в буфер копирования */
             $copy_buf->expects($this->once())
                      ->method('write')
                      ->with($this->equalTo($this->_data))
                      ->will($this->returnCallback($callback));
             
-            $opts = array('copy_on_write' => $copy_buf);
-            
             /* Создаём новый объект буфера */
-            $buf = IO_Buffer::create($opts);
+            $buf = IO_Buffer::create($context);
             $this->assertType('IO_Buffer', $buf);
             
             /* Записываем в него данные */
@@ -151,20 +237,35 @@
         * Тест для проверки неправильной работы копирования-при-записи.
         */
         public function testCopyOnWriteFail() {
-            /* Создаём заглушку для буфера копирования */
+            /* Создаём заглушки */
+            $context  = $this->getMock('IO_Buffer_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
             $copy_buf = $this->getMock('IO_Buffer_Interface');
+            
+            /* Запрос у контекста нового объекта настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+                    
+            /* Дважды устанавливаем параметры */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            $opts->expects($this->once())
+                 ->method('get')
+                 ->with($this->equalTo('copy_on_write'))
+                 ->will($this->returnValue($copy_buf));
             
             $callback = array($this, 'writeCallbackFail');
             
-            /* Задаём метод, возвращающий неправильное значение */
+            /* Один раз произойдёт запись в буфер копирования */
             $copy_buf->expects($this->once())
                      ->method('write')
+                     ->with($this->equalTo($this->_data))
                      ->will($this->returnCallback($callback));
             
-            $opts = array('copy_on_write' => $copy_buf);
-            
             /* Создаём новый объект буфера */
-            $buf = IO_Buffer::create($opts);
+            $buf = IO_Buffer::create($context);
             $this->assertType('IO_Buffer', $buf);
             
             $this->setExpectedException('IO_Buffer_Exception');
