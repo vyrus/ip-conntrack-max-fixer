@@ -90,8 +90,9 @@
         */
         public function dispatchStreams() {
             /* Выбираем готовые к обработке потоки */
-            $streams = array();
-            if ($this->_selector->select($streams) <= 0) {
+            $streams = $this->_selector->select();
+            
+            if (sizeof($streams) <= 0) {
                 return;
             }
             
@@ -134,15 +135,15 @@
                 return;
             }
            
-            $read_at_once  = $this->options->get('stream.read_at_once');
-            $write_at_once = $this->options->get('stream.write_at_once');
+            $read_at_once  = $this->_opts->get('stream.read_at_once');
+            $write_at_once = $this->_opts->get('stream.write_at_once');
             
             $total_read = 0;
             $total_written = 0;
             
             try {
                 /* Если поток готов к чтению, */
-                if ($stream->isReady(IO_Stream_Abstract::OPERATION_READ))
+                if ($stream->getReady(IO_Stream_Interface::OPERATION_READ))
                 {
                     /* то считываем данные в буфер */
                     while ($read = $stream->read($read_at_once)) {
@@ -151,7 +152,7 @@
                 }
                 
                 /* Если поток готов к записи, */
-                if ($stream->isReady(IO_Stream_Abstract::OPERATION_WRITE))
+                if ($stream->getReady(IO_Stream_Interface::OPERATION_WRITE))
                 {
                     /* то записываем данные из буфера */
                     while ($written = $stream->write($write_at_once)) {

@@ -209,7 +209,7 @@
             $selector->register($stream);
             
             /* Ни одного потока не должно быть выбрано */
-            $this->assertEquals(0, $selector->select($streams));
+            $this->assertEquals(array(), $selector->select());
         }
         
         /**
@@ -220,7 +220,7 @@
             
             $this->setExpectedException('IO_Stream_Selector_Exception');
             
-            $selector->select($streams);
+            $selector->select();
         }
     }
     

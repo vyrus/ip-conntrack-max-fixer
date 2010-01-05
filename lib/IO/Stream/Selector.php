@@ -99,19 +99,16 @@
         * которого метод будет ждать изменения состояния потоков (но он вернёт 
         * результат сразу же, как изменится состояние хотя бы одного потока).
         * 
-        * @param mixed $streams Выходной массив потоков.
-        * @param mixed $tv_usec Максимальное время ожидания (в миллисекундах).
-        * @return int Количество готовых к обработке потоков.
-        * @throws IO_Stream_Selector_Exception
+        * @param  mixed $tv_usec Максимальное время ожидания (в миллисекундах).
+        * @return array Список потоков, готовых к обработке.
         */
-        public function select(& $streams, $tv_usec = 100000) {
+        public function select($tv_usec = 100000) {
             /* Удостоверяемся, что список потоков не пуст */
             if (empty($this->_streams)) {
                 $e = 'Нет ни одного зарегистрированного потока';
                 throw new IO_Stream_Selector_Exception($e);
             }
             
-            $streams = array();
             $read = $write = $except = array();
             
             $op_read   = IO_Stream_Interface::OPERATION_READ;
@@ -142,7 +139,7 @@
             * пустые массивы. Поэтому выходим.
             */
             if (0 == sizeof($read) && 0 == sizeof($write)) {
-                return 0;
+                return array();
             }
             
             /* Выполняем выбор потоков, готовых к обработке */
@@ -157,12 +154,14 @@
             * Если есть готовые к обработке потоки, то устанавливаем флаги
             * готовности и собираем все потоки в один массив.
             */
+            $streams = array();
+            
             if ($num_changed > 0) {
                 $this->_select($streams, $read,  array($op_read, $op_accept));
                 $this->_select($streams, $write, array($op_write));
             }
             
-            return sizeof($streams);
+            return $streams;
         }
         
         /**
