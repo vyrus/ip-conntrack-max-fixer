@@ -1,5 +1,8 @@
 <?php
-
+    
+    /**
+    * @todo This needs total refactoring.
+    */
     class IO_Stream_File extends IO_Stream_Abstract {
         /**
         * @var array
