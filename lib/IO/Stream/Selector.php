@@ -174,7 +174,8 @@
         */
         protected function _select(& $streams, $raw_streams, array $ops) {
             /* Пробегаемся по переданным потокам */
-            foreach ($raw_streams as $raw_stream) {
+            foreach ($raw_streams as $raw_stream)
+            {
                 /* Получаем идентификатор потока */
                 $idx = (int) $raw_stream;
                 /* По нему находим объект потока */
