@@ -64,10 +64,13 @@
         
         /**
         * Тест выборки потоков.
+        * 
+        * @todo Нестабильный тест.
+        * 
         * @todo Need some refactoring to split stream_select() call and 
         * some general selecting logic from IO_Stream_Select.
         */
-        public function testSelect() {
+        public function _testSelect() {
             $selector = IO_Stream_Selector::create();
             
             /* Создаём парочку потоков-заглушек: для чтения и для записи */
