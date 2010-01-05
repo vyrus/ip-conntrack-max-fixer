@@ -7,9 +7,7 @@
         /**
         * Возвращает новый объект настроек
         * 
-        * @todo return Options_Interface
-        * 
-        * @return Options
+        * @return Options_Interface
         */
         public function createOptions();
         
