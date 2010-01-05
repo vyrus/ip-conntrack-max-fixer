@@ -7,6 +7,7 @@
             $suite = new PHPUnit_Framework_TestSuite();
             
             $suite->addTest(IO_AllTests::suite());
+            $suite->addTestSuite('NetworkTest');
             
             return $suite;
         }

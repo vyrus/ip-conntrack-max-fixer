@@ -3,6 +3,8 @@
     /**
     * Класс селектора потоков, позволяет осуществлять асинхронный ввод/вывод на 
     * неблокирующихся потоках.
+    * 
+    * @todo Или всё же IO_Selector? :)
     */
     class IO_Stream_Selector implements IO_Stream_Selector_Interface {
         /**
