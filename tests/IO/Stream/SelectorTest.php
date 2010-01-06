@@ -7,7 +7,20 @@
         * Тест создания экземпляра класса.
         */
         public function testCreate() {
-            $selector = IO_Stream_Selector::create();
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            $selector = IO_Stream_Selector::create($context);
             
             $this->assertType('IO_Stream_Selector', $selector);
         }
@@ -16,13 +29,27 @@
         * Тест учёта потоков.
         */
         public function testRegUnreg() {
-            $stream = $this->getMock('IO_Stream_Interface');
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            $stream   = $this->getMock('IO_Stream_Interface');
             
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+            
+            /* И дважды будет вызван метод получение идентификатора потока */
             $stream->expects($this->exactly(2))
                    ->method('getId')
                    ->will($this->returnValue(1)); 
             
-            $selector = IO_Stream_Selector::create();
+            $selector = IO_Stream_Selector::create($context);
+            
             $selector->register($stream);
             $selector->unregister($stream);
         }
@@ -31,13 +58,26 @@
         * Тест повторной регистрации потока.
         */
         public function testRegFail() {
-            $stream = $this->getMock('IO_Stream_Interface');
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            $stream   = $this->getMock('IO_Stream_Interface');
             
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            /* И дважды будет вызван метод получение идентификатора потока */
             $stream->expects($this->exactly(2))
                    ->method('getId')
                    ->will($this->returnValue(1)); 
             
-            $selector = IO_Stream_Selector::create();
+            $selector = IO_Stream_Selector::create($context);
             
             $this->setExpectedException('IO_Stream_Selector_Exception');
             
@@ -49,13 +89,26 @@
         * Тест отмены регистрации незарегистрированного потока.
         */
         public function testUnregFail() {
-            $stream = $this->getMock('IO_Stream_Interface');
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            $stream   = $this->getMock('IO_Stream_Interface');
             
-            $stream->expects($this->exactly(1))
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            /* И будет вызван метод получение идентификатора потока */
+            $stream->expects($this->once())
                    ->method('getId')
                    ->will($this->returnValue(1)); 
             
-            $selector = IO_Stream_Selector::create();
+            $selector = IO_Stream_Selector::create($context);
             
             $this->setExpectedException('IO_Stream_Selector_Exception');
             
@@ -71,11 +124,22 @@
         * some general selecting logic from IO_Stream_Select.
         */
         public function _testSelect() {
-            $selector = IO_Stream_Selector::create();
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
             
             /* Создаём парочку потоков-заглушек: для чтения и для записи */
-            $in_stream = $this->getMock('IO_Stream_Interface');
+            $in_stream  = $this->getMock('IO_Stream_Interface');
             $out_stream = $this->getMock('IO_Stream_Interface');
+            
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
             
             /* Открываем реальные потоки, иначе селектор не сработает */
             /**
@@ -135,16 +199,18 @@
                    ->method('setReady');
             */       
             
+            $selector = IO_Stream_Selector::create($context);
+            
             /* Регистрируем потоки */
             $selector->register($in_stream);
             $selector->register($out_stream);
             /* И делаем выборку */
-            $result = $selector->select($streams, 200000);
+            $streams = $selector->select();
             
             /**
             * @todo Непонятно, почему 1 поток только выберется...
             */
-            $this->assertEquals(1, $result);
+            $this->assertType('array', $streams);
             $this->assertTrue(in_array($in_stream, $streams));
             //$this->assertTrue(in_array($out_stream, $streams));
         }
@@ -187,11 +253,25 @@
         * Тест выборки из одного ни в чём не заинтересованного потока.
         */
         public function testSelectNoIinterest() {
-            $selector = IO_Stream_Selector::create();
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            $stream   = $this->getMock('IO_Stream_Interface');
             
-            /* Настраиваем поток-заглушку */
-            $stream = $this->getMock('IO_Stream_Interface');
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
             
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            /* И будет вызван метод получение идентификатора потока */
+            $stream->expects($this->once())
+                   ->method('getId')
+                   ->will($this->returnValue(1));
+                   
             /* Идентификатор потока */
             $stream->expects($this->once())
                    ->method('getId')
@@ -205,7 +285,8 @@
             $stream->expects($this->exactly(3))
                    ->method('getInterest')
                    ->will($this->returnValue(false));
-                   
+            
+            $selector = IO_Stream_Selector::create($context);
             $selector->register($stream);
             
             /* Ни одного потока не должно быть выбрано */
@@ -216,7 +297,20 @@
         * Тест выборки из пустого списка потоков.
         */
         public function testSelectOnNoStreams() {
-            $selector = IO_Stream_Selector::create();
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Selector_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            $selector = IO_Stream_Selector::create($context);
             
             $this->setExpectedException('IO_Stream_Selector_Exception');
             
