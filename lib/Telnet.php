@@ -4,6 +4,13 @@
         /**
         * //
         * 
+        * @var Telnet_Context_Interface
+        */
+        protected $_context;
+        
+        /**
+        * //
+        * 
         * @var IO_Stream_Abstract
         */
         protected $_stream;
@@ -36,8 +43,12 @@
         */
         protected $_listener;
         
-        public static function create() {
-            return new self();
+        public function __construct(Telnet_Context_Interface $context) {
+            $this->_context = $context;
+        }
+        
+        public static function create(Telnet_Context_Interface $context) {
+            return new self($context);
         }
         
         public function setListener(Telnet_Listener_Interface $listener) {
@@ -50,18 +61,22 @@
                 'port' => $port
             );
             
-            $stream = IO_Stream_Buffered::create('socket', $opts);
+            $spark = $this->_context->createSocketSpark();
+            $spark->setOptions($opts);
+            $spark->ignite();
+            
+            $stream = $this->_context->createBufferedStream();
+            $stream->setSpark($spark);
             $stream->setListener($this);
-            $stream->connect();
             $stream->setBlockingMode(0);
-            $stream->setInterest(IO_Stream_Abstract::OPERATION_READ);
+            $stream->setInterest(IO_Stream_Interface::OPERATION_READ);
             
             $this->_stream = $stream;
             $this->_listener->onTelnetConnected($this, $stream);
             
             $this->_read_buffer  = $stream->getReadBuffer();
             $this->_write_buffer = $stream->getWriteBuffer();
-            $this->_echo_buffer = IO_Buffer::create();
+            $this->_echo_buffer  = $this->_context->createBuffer();
         }
         
         public function disconnect() {
@@ -77,16 +92,16 @@
             }
             
             $this->_write_buffer->write($data);
-            $this->_stream->setInterest(IO_Stream_Abstract::OPERATION_WRITE);
+            $this->_stream->setInterest(IO_Stream_Interface::OPERATION_WRITE);
             
-            return $this->_write_buffer->offset();
+            return $this->_write_buffer->getOffset();
         }
         
-        public function onStreamRead(IO_Stream_Abstract $stream, $bytes_read) {
+        public function onStreamRead(IO_Stream_Interface $stream, $bytes_read) {
             $this->_read_buffer->rewind();
             $data = $this->_read_buffer->read();
             
-            $echo_len = $this->_echo_buffer->length();
+            $echo_len = $this->_echo_buffer->getLength();
             if ($echo_len)
             {
                 $data_len = strlen($data);
@@ -115,16 +130,20 @@
             }
         }
         
-        public function onStreamWrite(IO_Stream_Abstract $stream, $bytes_written) {
-            if ($this->_write_buffer->length() > 0)
+        public function onStreamWrite(IO_Stream_Interface $stream, $bytes_written) {
+            if ($this->_write_buffer->getLength() > 0)
                 return;
             
-            $this->_stream->resetInterest(IO_Stream_Abstract::OPERATION_WRITE);
+            $this->_stream->resetInterest(IO_Stream_Interface::OPERATION_WRITE);
         }
         
-        public function onStreamError(IO_Stream_Abstract $stream, $error) {
+        public function onStreamClose(IO_Stream_Interface $stream) {
             $this->disconnect();
-        } 
+        }
+        
+        public function onStreamError(IO_Stream_Interface $stream, $error) {
+            $this->disconnect();
+        }
     }
 
 ?>

@@ -285,7 +285,7 @@
         public function close() {
             if ($this->isOpen())
             {
-                if (false !== fclose($this->_stream))
+                if (false === fclose($this->_stream))
                 {
                     $e = 'Ошибка при закрытии потока';
                     throw new IO_Stream_Exception($e);

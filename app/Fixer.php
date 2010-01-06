@@ -1,6 +1,6 @@
 <?php
 
-    class IpConntrackMaxFixer implements Telnet_Listener_Interface {
+    class Fixer implements Telnet_Listener_Interface {
         /**
         * //
         * 
@@ -148,18 +148,13 @@
         */
         protected $_continue = true;
         
-        public static function create() {
-            return new self();
+        public function __construct(Fixer_Context_Interface $context) {
+            $this->_network = $context->getNetwork();
+            $this->_telnet  = $context->getTelnet();
         }
         
-        public function setNetwork(Network $net) {
-            $this->_network = $net;
-            return $this;
-        }
-        
-        public function setTelnet(Telnet $telnet) {
-            $this->_telnet = $telnet;
-            return $this;
+        public static function create(Fixer_Context_Interface $context) {
+            return new self($context);
         }
         
         public function setHost($host) {
@@ -192,7 +187,7 @@
         }
         
         public function onTelnetConnected(Telnet $telnet,
-                                          IO_Stream_Abstract $stream) {
+                                          IO_Stream_Interface $stream) {
             $this->_network->registerStream($stream);
         }
         
@@ -226,7 +221,7 @@
         }
         
         public function onTelnetDisconnected(Telnet $telnet,
-                                             IO_Stream_Abstract $stream) {
+                                             IO_Stream_Interface $stream) {
             $this->_network->unregisterStream($stream);
                  
             if (self::STATE_FINISH !== $this->_state) {

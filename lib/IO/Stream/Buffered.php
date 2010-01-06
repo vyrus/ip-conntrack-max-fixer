@@ -80,7 +80,7 @@
         */
         public function write($length) {
             /* Если в буфере ничего нет, */
-            if ($this->_write_buffer->length() <= 0) {
+            if ($this->_write_buffer->getLength() <= 0) {
                 /* то мы ничего и не делаем :) */
                 return 0;
             }

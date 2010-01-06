@@ -3,14 +3,7 @@
     /**
     * Интерфейс контекста службы сети.
     */
-    interface Network_Context_Interface {
-        /**
-        * Возвращает новый объект настроек.
-        * 
-        * @return Options_Interface
-        */
-        public function createOptions();
-        
+    interface Network_Context_Interface extends Context_Optable_Interface {
         /**
         * Возвращает новый объект селектора потоков.
         * 

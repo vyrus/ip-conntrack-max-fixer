@@ -3,13 +3,6 @@
     /**
     * Интерфейс контекста потока.
     */
-    interface IO_Stream_Context_Interface {
-        /**
-        * Возвращает новый объект настроек.
-        * 
-        * @return Options_Interface
-        */
-        public function createOptions();
-    }
+    interface IO_Stream_Context_Interface extends Context_Optable_Interface {/*_*/}
 
 ?>
