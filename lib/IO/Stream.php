@@ -67,15 +67,12 @@
         /**
         * Создание нового объекта потока.
         * 
-        * @param  array|Options $options Опции объекта.
+        * @param  IO_Stream_Context_Interface $context Контекст потока.
         * @return IO_Stream
         */
-        public function __construct($options = null) {
-            $this->_opts = Options::create($this->_default_options);
-            
-            if (null !== $options) {
-                $this->_opts->apply($options);
-            }
+        public function __construct(IO_Stream_Context_Interface $context) {
+            $this->_opts = $context->createOptions();
+            $this->setOptions($this->_default_options);
             
             /* Инициализируем флаги операций */
             $this->resetAllInterest();
@@ -107,11 +104,21 @@
         /**
         * Создание нового объекта потока.
         * 
-        * @param  array|Options $options Опции потока.
+        * @param  IO_Stream_Context_Interface $context Контекст потока.
         * @return IO_Stream
         */
-        public static function create($options = null) {
-            return new self($options);
+        public static function create(IO_Stream_Context_Interface $context) {
+            return new self($context);
+        }
+        
+        /**
+        * Установка опций потока.
+        * 
+        * @param  array|Options $options
+        * @return void
+        */
+        public function setOptions($options = array()) {
+            $this->_opts->apply($options);
         }
         
         /**
