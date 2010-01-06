@@ -7,11 +7,31 @@
         * Что можем, то и тестируем... =)
         */
         public function testGeneric() {
-            $stream = IO_Stream_Buffered::create();
+            /* Создание заглушек объектов */
+            $context  = $this->getMock('IO_Stream_Buffered_Context_Interface');
+            $opts     = $this->getMock('Options_Interface');
+            $buffer   = $this->getMock('IO_Buffer_Interface');
+            
+            /* Один раз будет создан новый объект настроек */
+            $context->expects($this->once())
+                    ->method('createOptions')
+                    ->will($this->returnValue($opts));
+            
+            /* Один раз будут установлены опции */
+            $opts->expects($this->once())
+                 ->method('apply');
+                 
+            /* И два раза будет создан новый буфер */
+            $context->expects($this->exactly(2))
+                    ->method('createBuffer')
+                    ->will($this->returnValue($buffer));
+                 
+            $stream = IO_Stream_Buffered::create($context);
             
             $this->assertType('IO_Stream_Buffered', $stream);
-            $this->assertType('IO_Buffer_Interface', $stream->getReadBuffer());
-            $this->assertType('IO_Buffer_Interface', $stream->getWriteBuffer());
+            
+            $this->assertEquals($buffer, $stream->getReadBuffer());
+            $this->assertEquals($buffer, $stream->getWriteBuffer());
         }
     }
 

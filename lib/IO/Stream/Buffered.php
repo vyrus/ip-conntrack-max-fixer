@@ -25,8 +25,10 @@
         * @param  array|Options $options Опции потока.
         * @return IO_Stream_Buffered
         */
-        public static function create($options = null) {
-            return new self($options);
+        public static function create(
+            IO_Stream_Buffered_Context_Interface $context
+        ) {
+            return new self($context);
         }
         
         /**
@@ -35,8 +37,8 @@
         * @return void
         */
         protected function _init() {
-            $this->_read_buffer  = IO_Buffer::create();
-            $this->_write_buffer = IO_Buffer::create();
+            $this->_read_buffer  = $this->_context->createBuffer();
+            $this->_write_buffer = $this->_context->createBuffer();
         }
                    
         /**

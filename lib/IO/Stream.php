@@ -7,6 +7,13 @@
     */
     class IO_Stream implements IO_Stream_Interface {
         /**
+        * Контекст объекта.
+        * 
+        * @var IO_Stream_Context_Interface
+        */
+        protected $_context;
+        
+        /**
         * Искра потока.
         * 
         * @vaк IO_Stream_Spark_Interface
@@ -71,6 +78,8 @@
         * @return IO_Stream
         */
         public function __construct(IO_Stream_Context_Interface $context) {
+            $this->_context = $context;
+            
             $this->_opts = $context->createOptions();
             $this->setOptions($this->_default_options);
             

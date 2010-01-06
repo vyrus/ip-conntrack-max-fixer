@@ -5,7 +5,7 @@
     */
     interface IO_Stream_Context_Interface {
         /**
-        * Возвращает новый объект настроек
+        * Возвращает новый объект настроек.
         * 
         * @return Options_Interface
         */
