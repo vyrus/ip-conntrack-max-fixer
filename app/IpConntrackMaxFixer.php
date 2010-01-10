@@ -274,7 +274,7 @@
                 case self::STATE_CHECK_VALUE:
                     if ($this->_result >= $this->_ip_conntrack_max)
                     {
-                        $msg = 'The value bigest enough is set already: ';
+                        $msg = 'The value biggest enough is set already: ';
                         $this->_print(CRLF . $msg . $this->_result, true);
                         
                         $this->_telnet->disconnect();
@@ -308,6 +308,10 @@
                     }
                     
                     $this->_print(' Ok', true);
+                    
+                    $msg = 'Current ip_conntrack_max value: ' . 
+                           $this->_ip_conntrack_max;
+                    $this->_print($msg, true);
                     
                     $telnet->sendString('exit');
                     $this->_state = self::STATE_FINISH;
