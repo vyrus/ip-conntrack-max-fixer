@@ -49,7 +49,8 @@
                  
             $stream = IO_Stream::create($context);
                   
-            $stream->setSpark($spark);
+            /* Fluent interface */
+            $this->assertEquals($stream, $stream->setSpark($spark));
             $this->assertEquals($spark, $stream->getSpark());
             
             $this->assertType('resource', $stream->getRawStream());
@@ -76,7 +77,8 @@
                  
             $stream = IO_Stream::create($context);
             
-            $stream->setListener($listener);
+            /* Fluent interface */
+            $this->assertEquals($stream, $stream->setListener($listener));
             $this->assertEquals($listener, $stream->getListener());
         }
         
@@ -113,36 +115,40 @@
             $this->assertFalse($stream->getReady($write));
             $this->assertFalse($stream->getReady($accept));
             
-            /* Устанавливаем все флаги интереса */
-            $stream->setInterest($read);
-            $stream->setInterest($write);
-            $stream->setInterest($accept);
+            /* Устанавливаем все флаги интереса и проверяем fluent interface */
+            $this->assertEquals($stream, $stream->setInterest($read));
+            $this->assertEquals($stream, $stream->setInterest($write));
+            $this->assertEquals($stream, $stream->setInterest($accept));
             
             /* Все флаги интереса должны быть установлены */
             $this->assertTrue($stream->getInterest($read));
             $this->assertTrue($stream->getInterest($write));
             $this->assertTrue($stream->getInterest($accept));
             
-            /* Устанавливаем все флаги готовности */
-            $stream->setReady($read);
-            $stream->setReady($write);
-            $stream->setReady($accept);
+            /* Устанавливаем все флаги готовности + fluent interface */
+            $this->assertEquals($stream, $stream->setReady($read));
+            $this->assertEquals($stream, $stream->setReady($write));
+            $this->assertEquals($stream, $stream->setReady($accept));
             
             /* Все флаги готовности должны быть установлены */
             $this->assertTrue($stream->getReady($read));
             $this->assertTrue($stream->getReady($write));
             $this->assertTrue($stream->getReady($accept));
             
-            /* Сбрасываем все флаги интереса */
-            $stream->resetAllInterest();
+            /* Проверяем сброс отдельного интереса + fluent interface */
+            $this->assertEquals($stream, $stream->resetInterest($read));
+            $this->assertFalse($stream->getInterest($read));
+            
+            /* Сбрасываем все флаги интереса и проверяем fluent interface */
+            $this->assertEquals($stream, $stream->resetAllInterest());
             
             /* Все флаги интереса должны быть сброшены */
             $this->assertFalse($stream->getInterest($read));
             $this->assertFalse($stream->getInterest($write));
             $this->assertFalse($stream->getInterest($accept));
             
-            /* Сбрасываем все флаг готовности */
-            $stream->resetAllReady();
+            /* Сбрасываем все флаг готовности и проверяем fluent interface */
+            $this->assertEquals($stream, $stream->resetAllReady());
             
             /* Все флаги готовности должны быть сброшены */
             $this->assertFalse($stream->getReady($read));

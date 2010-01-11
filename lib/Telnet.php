@@ -62,14 +62,14 @@
             );
             
             $spark = $this->_context->createSocketSpark();
-            $spark->setOptions($opts);
-            $spark->ignite();
+            $spark->setOptions($opts)
+                  ->ignite();
             
             $stream = $this->_context->createBufferedStream();
-            $stream->setSpark($spark);
-            $stream->setListener($this);
-            $stream->setBlockingMode(0);
-            $stream->setInterest(IO_Stream_Interface::OPERATION_READ);
+            $stream->setSpark($spark)
+                   ->setListener($this)
+                   ->setInterest(IO_Stream_Interface::OPERATION_READ)
+                   ->setBlockingMode(0);
             
             $this->_stream = $stream;
             $this->_listener->onTelnetConnected($this, $stream);

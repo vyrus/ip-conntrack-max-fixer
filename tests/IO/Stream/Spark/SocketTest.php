@@ -21,8 +21,8 @@
                     ->method('createOptions')
                     ->will($this->returnValue($opts));
                     
-            /* Один раз будут установлены опции */
-            $opts->expects($this->once())
+            /* Два раза будут установлены опции */
+            $opts->expects($this->exactly(2))
                  ->method('apply');
             
             $callback = array($this, 'getCallback');
@@ -35,6 +35,9 @@
             /* Создаём искры */
             $spark = IO_Stream_Spark_Socket::create($context);
             $this->assertType('IO_Stream_Spark_Socket', $spark);
+            
+            /* Устанавливаем опции и проверяем fluent interface */
+            $this->assertEquals($spark, $spark->setOptions($this->_opts));
             
             /* Зажигаем! :) */
             $this->assertTrue($spark->ignite());

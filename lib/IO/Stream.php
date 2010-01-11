@@ -133,12 +133,14 @@
         /**
         * Установка искры потока.
         * 
-        * @param IO_Stream_Spark_Interface $spark
-        * @return void
+        * @param  IO_Stream_Spark_Interface $spark
+        * @return IO_Stream Fluent interface.
         */
         public function setSpark(IO_Stream_Spark_Interface $spark) {
             $this->_spark = $spark;
             $this->_stream = $spark->getStream();
+            
+            return $this;
         }
         
         /**
@@ -153,11 +155,12 @@
         /**
         * Установка слушателя событий потока.
         * 
-        * @param IO_Stream_Listener_Interface $listener
-        * @return void
+        * @param  IO_Stream_Listener_Interface $listener
+        * @return IO_Stream Fluent interface.
         */
         public function setListener(IO_Stream_Listener_Interface $listener) {
             $this->_listener = $listener;
+            return $this;
         }
         
         /**
@@ -172,11 +175,12 @@
         /**
         * Возведение флажка о заинтересованности в операции.
         * 
-        * @param mixed $operation
-        * @return void
+        * @param  mixed $operation
+        * @return IO_Stream Fluent interface.
         */
         public function setInterest($operation) {
-            $this->_ops_interest[$operation] = true;     
+            $this->_ops_interest[$operation] = true;
+            return $this;     
         }
         
         /**
@@ -192,33 +196,36 @@
         /**
         * Сброс флага заинтересованности в операции.
         * 
-        * @param mixed $operation
-        * @return void
+        * @param  mixed $operation
+        * @return IO_Stream Fluent interface.
         */
         public function resetInterest($operation) {
             $this->_ops_interest[$operation] = false;
+            return $this;
         }
         
         /**
         * Сброс флагов заинтересованности для всех операций (чтение, запись и
         * приём входящих соединений).
         * 
-        * @return void
+        * @return IO_Stream Fluent interface.
         */
         public function resetAllInterest() {
             $this->_ops_interest = array(self::OPERATION_READ   => false,
                                          self::OPERATION_WRITE  => false,
                                          self::OPERATION_ACCEPT => false);
+            return $this;
         }
         
         /**
         * Возведение флажка о готовности к операции.
         * 
-        * @param mixed $operation
-        * @return void
+        * @param  mixed $operation
+        * @return IO_Stream Fluent interface.
         */
         public function setReady($operation) {
             $this->_ops_ready[$operation] = true;
+            return $this;
         }
         
         /**
@@ -235,12 +242,13 @@
         /**
         * Сброс всех флагов готовости к операциям.
         * 
-        * @return void
+        * @return IO_Stream Fluent interface.
         */
         public function resetAllReady() {
             $this->_ops_ready = array(self::OPERATION_READ   => false,
                                       self::OPERATION_WRITE  => false,
                                       self::OPERATION_ACCEPT => false);
+            return $this;
         }
         
         /**

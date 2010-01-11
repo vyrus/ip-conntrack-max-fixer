@@ -66,10 +66,11 @@
         * Установка опций искры.
         * 
         * @param  array|Options $options
-        * @return void
+        * @return IO_Stream_Spark_Socket Fluent interface.
         */
         public function setOptions($options = array()) {
             $this->_opts->apply($options);
+            return $this;
         }
         
         /**
