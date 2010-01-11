@@ -1,12 +1,6 @@
 <?php
     
-    class Fixer_Context implements Fixer_Context_Interface,
-                                   Network_Context_Interface,
-                                   Telnet_Context_Interface,
-                                   IO_Stream_Selector_Context_Interface,
-                                   IO_Stream_Buffered_Context_Interface,
-                                   IO_Stream_Spark_Context_Interface,
-                                   IO_Buffer_Context_Interface {
+    class Fixer_Context implements Fixer_Context_Interface {
         /**
         * //
         * 

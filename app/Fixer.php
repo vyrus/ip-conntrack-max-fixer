@@ -269,7 +269,7 @@
                 case self::STATE_GET_VALUE:
                     $this->_print(' Ok', true);
                     
-                    $msg = 'Current ip_conntrack_max_value: ' . $this->_result;
+                    $msg = 'Current ip_conntrack_max value: ' . $this->_result;
                     $this->_print($msg, true);
                     
                     /* Если желаемое значение уже установлено, */
