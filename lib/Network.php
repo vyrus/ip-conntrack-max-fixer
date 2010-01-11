@@ -126,10 +126,7 @@
             */
             /* Проверяем, не закрылся ли поток */
             if (!$stream->isOpen()) {
-                /* Удаляем поток из списка зарегистрированных */
-                $this->unregisterStream($stream);
-                
-                /* И вызываем обработчик */
+                /* Вызываем обработчик */
                 $listener->onStreamClose($stream);
                 
                 return;
