@@ -48,7 +48,7 @@
         * 
         * @var const
         */
-        const STATE_CHECK_VALUE = 'check-value';
+        const STATE_GET_VALUE = 'get-value';
         
         /**
         * //
@@ -255,7 +255,7 @@
                         $msg = 'Couldn\'t change folder to ' . self::FOLDER;
                         $this->_print(CRLF . $msg, true);
                         
-                        $this->_telnet->disconnect();
+                        $telnet->sendString('exit');
                         return;
                     }
                     
@@ -263,20 +263,28 @@
                     $this->_print('Checking ip_conntrack_max value...');
                                               
                     $telnet->sendString('cat ip_conntrack_max');
-                    $this->_state = self::STATE_CHECK_VALUE;
+                    $this->_state = self::STATE_GET_VALUE;
                     break;
                     
-                case self::STATE_CHECK_VALUE:
-                    if ($this->_result >= $this->_ip_conntrack_max)
+                case self::STATE_GET_VALUE:
+                    $this->_print(' Ok', true);
+                    
+                    $msg = 'Current ip_conntrack_max_value: ' . $this->_result;
+                    $this->_print($msg, true);
+                    
+                    /* Если желаемое значение уже установлено, */
+                    if ($this->_result == $this->_ip_conntrack_max)
                     {
-                        $msg = 'The value bigest enough is set already: ';
-                        $this->_print(CRLF . $msg . $this->_result, true);
+                        /* Выводим сообщение */
+                        $msg = 'The desired value is already set.';
+                        $this->_print($msg, true);
                         
-                        $this->_telnet->disconnect();
+                        /* И успешно завершаем работу */
+                        $telnet->sendString('exit');
+                        $this->_state = self::STATE_FINISH;
                         return;
                     }
                     
-                    $this->_print(' Ok', true);
                     $this->_print('Fixing ip_conntrack_max value...');
                     
                     $cmd = 'echo ' . $this->_ip_conntrack_max .
@@ -298,11 +306,15 @@
                                ' to ' . $this->_ip_conntrack_max;
                         $this->_print(CRLF . $msg, true);
                         
-                        $this->_telnet->disconnect();
+                        $telnet->sendString('exit');
                         return;
                     }
                     
                     $this->_print(' Ok', true);
+                    
+                    $msg = 'Current ip_conntrack_max value: ' . 
+                           $this->_ip_conntrack_max;
+                    $this->_print($msg, true);
                     
                     $telnet->sendString('exit');
                     $this->_state = self::STATE_FINISH;
