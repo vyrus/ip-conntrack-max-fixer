@@ -11,7 +11,7 @@
     Init::define('THIRD_PARTY',  ROOT . DS . 'third_party');
         
     Init::setIncludePath( array(APP, LIB, THIRD_PARTY) );
-    Init::setErrorReporting(E_ALL | E_STRICT );
+    Init::setErrorReporting(E_ALL);
     //Init::setupErrorHandler();
 
     Init::define('CR',   "\r");
