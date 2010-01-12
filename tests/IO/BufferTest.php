@@ -1,6 +1,6 @@
 <?php
     
-    require_once dirname(__FILE__) . '/../../init.php';
+    require_once dirname(__FILE__) . '/../init.php';
     
     class IO_BufferTest extends PHPUnit_Framework_TestCase {
         protected $_data = '1234567';
